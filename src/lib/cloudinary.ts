@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 export function uploadToCloudinary(file: File, onProgress?: (progress: number) => void): Promise<string> {
   return new Promise((resolve, reject) => {
     const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;

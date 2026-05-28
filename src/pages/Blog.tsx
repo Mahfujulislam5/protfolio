@@ -11,8 +11,8 @@ export function Blog() {
 
   useEffect(() => {
     const unsub = onSnapshot(query(collection(db, "posts")), (snapshot) => {
-      const allPosts = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      setPosts(allPosts.filter(p => p.status === 'published'));
+      const allPosts = snapshot.docs.map(d => ({ id: d.id, ...(d.data() as any) }));
+      setPosts(allPosts.filter((p: any) => p.status === 'published'));
       setLoading(false);
     });
     return unsub;

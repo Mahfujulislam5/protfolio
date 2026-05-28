@@ -13,12 +13,12 @@ export function Testimonials() {
   useEffect(() => {
     const q = query(
       collection(db, "reviews"),
-      where("status", "==", "approved"),
-      orderBy("createdAt", "desc"),
-      limit(6)
+      where("status", "==", "approved")
     );
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      setReviews(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      let allReviews = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any }));
+      allReviews.sort((a, b) => b.createdAt?.toMillis?.() - a.createdAt?.toMillis?.() || 0);
+      setReviews(allReviews.slice(0, 6));
     });
     return () => unsubscribe();
   }, []);

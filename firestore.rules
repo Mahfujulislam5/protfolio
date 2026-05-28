@@ -53,7 +53,7 @@ service cloud.firestore {
       allow write: if isSystemAdmin();
     }
 
-    match /blogs/{blogId} {
+    match /posts/{postId} {
       allow read: if true;
       allow write: if isSystemAdmin();
     }
