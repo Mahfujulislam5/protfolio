@@ -1,0 +1,77 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+    
+    // For local dev and setup, allow the owner email to be an admin implicitly if no admins exist yet, 
+    // or bootstrap by allowing them to create their admin document.
+    function isOwnerEmail() {
+      return isSignedIn() && request.auth.token.email == 'mahfujul848@gmail.com' && request.auth.token.email_verified == true;
+    }
+
+    function isSystemAdmin() {
+      return isAdmin() || isOwnerEmail();
+    }
+
+    match /admins/{userId} {
+      allow read: if isSystemAdmin();
+      allow write: if isSystemAdmin() && request.auth.uid == userId; // Allow owner to insert their own UID 
+    }
+
+    match /categories/{categoryId} {
+      allow read: if true; 
+      allow write: if isSystemAdmin();
+    }
+
+    match /projects/{projectId} {
+      allow read: if true;
+      allow write: if isSystemAdmin();
+    }
+
+    match /prompts/{promptId} {
+      allow read: if true;
+      allow write: if isSystemAdmin();
+    }
+
+    match /tools/{toolId} {
+      allow read: if true;
+      allow write: if isSystemAdmin();
+    }
+
+    match /apps/{appId} {
+      allow read: if true;
+      allow write: if isSystemAdmin();
+    }
+
+    match /blogs/{blogId} {
+      allow read: if true;
+      allow write: if isSystemAdmin();
+    }
+
+    match /designs/{designId} {
+      allow read: if true;
+      allow write: if isSystemAdmin();
+    }
+
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isSystemAdmin();
+    }
+
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if isSystemAdmin();
+    }
+  }
+}

@@ -1,0 +1,212 @@
+{
+  "entities": {
+    "Admin": {
+      "title": "Admin",
+      "description": "Authorized administrators",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["email", "createdAt"]
+    },
+    "Category": {
+      "title": "Category",
+      "description": "Categories for projects, prompts, tools, etc.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "slug": { "type": "string" },
+        "icon": { "type": "string" },
+        "image": { "type": "string" },
+        "seoTitle": { "type": "string" },
+        "seoDescription": { "type": "string" },
+        "order": { "type": "number" },
+        "isVisible": { "type": "boolean" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["title", "slug", "isVisible"]
+    },
+    "Project": {
+      "title": "Project",
+      "description": "Portfolio projects",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "slug": { "type": "string" },
+        "category": { "type": "string" },
+        "thumbnail": { "type": "string" },
+        "banner": { "type": "string" },
+        "gallery": { "type": "array", "items": { "type": "string" } },
+        "videoPreview": { "type": "string" },
+        "description": { "type": "string" },
+        "features": { "type": "array", "items": { "type": "string" } },
+        "techStack": { "type": "array", "items": { "type": "string" } },
+        "liveDemo": { "type": "string" },
+        "github": { "type": "string" },
+        "download": { "type": "string" },
+        "apkLink": { "type": "string" },
+        "zipLink": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "featured": { "type": "boolean" },
+        "metaTitle": { "type": "string" },
+        "metaDescription": { "type": "string" },
+        "status": { "type": "string", "enum": ["published", "draft", "hidden"] },
+        "views": { "type": "number" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["title", "slug", "status", "createdAt"]
+    },
+    "Prompt": {
+      "title": "Prompt",
+      "description": "AI Prompts",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "previewImage": { "type": "string" },
+        "text": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "categories": { "type": "array", "items": { "type": "string" } },
+        "featured": { "type": "boolean" },
+        "views": { "type": "number" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["title", "text", "createdAt"]
+    },
+    "Tool": {
+      "title": "Tool",
+      "description": "AI Tools Showcase",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "link": { "type": "string" },
+        "iframeUrl": { "type": "string" },
+        "icon": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["title", "createdAt"]
+    },
+    "App": {
+      "title": "App",
+      "description": "App Showcase",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "apkLink": { "type": "string" },
+        "screenshots": { "type": "array", "items": { "type": "string" } },
+        "features": { "type": "array", "items": { "type": "string" } },
+        "icon": { "type": "string" },
+        "version": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["title", "createdAt"]
+    },
+    "Blog": {
+      "title": "Blog",
+      "description": "Blog Posts",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "slug": { "type": "string" },
+        "content": { "type": "string" },
+        "image": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "category": { "type": "string" },
+        "views": { "type": "number" },
+        "status": { "type": "string", "enum": ["published", "draft"] },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["title", "slug", "content", "status", "createdAt"]
+    },
+    "Design": {
+      "title": "Design",
+      "description": "Poster / Design Showcase",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "image": { "type": "string" },
+        "category": { "type": "string" },
+        "featured": { "type": "boolean" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["title", "image", "createdAt"]
+    },
+    "Setting": {
+      "title": "Setting",
+      "description": "Website Settings (Hero, SEO, etc.)",
+      "type": "object",
+      "properties": {
+        "type": { "type": "string" },
+        "value": { "type": "object" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["type", "value", "updatedAt"]
+    },
+    "Review": {
+      "title": "Review",
+      "description": "Customer Reviews",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "role": { "type": "string" },
+        "text": { "type": "string" },
+        "rating": { "type": "number" },
+        "avatar": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["name", "text", "createdAt"]
+    }
+  },
+  "firestore": {
+    "admins": {
+      "schema": { "$ref": "#/entities/Admin" },
+      "description": "Collection of authorized admin users."
+    },
+    "categories": {
+      "schema": { "$ref": "#/entities/Category" },
+      "description": "Categories for various content types."
+    },
+    "projects": {
+      "schema": { "$ref": "#/entities/Project" },
+      "description": "Portfolio projects."
+    },
+    "prompts": {
+      "schema": { "$ref": "#/entities/Prompt" },
+      "description": "AI prompts."
+    },
+    "tools": {
+      "schema": { "$ref": "#/entities/Tool" },
+      "description": "AI tools."
+    },
+    "apps": {
+      "schema": { "$ref": "#/entities/App" },
+      "description": "Showcase of android apps."
+    },
+    "blogs": {
+      "schema": { "$ref": "#/entities/Blog" },
+      "description": "Blog posts."
+    },
+    "designs": {
+      "schema": { "$ref": "#/entities/Design" },
+      "description": "Designs and posters."
+    },
+    "settings": {
+      "schema": { "$ref": "#/entities/Setting" },
+      "description": "Global website settings, such as Hero banner, SEO config, etc."
+    },
+    "reviews": {
+      "schema": { "$ref": "#/entities/Review" },
+      "description": "Customer reviews and testimonials."
+    }
+  }
+}
