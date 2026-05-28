@@ -1,8 +1,8 @@
 /// <reference types="vite/client" />
 export function uploadToCloudinary(file: File, onProgress?: (progress: number) => void): Promise<string> {
   return new Promise((resolve, reject) => {
-    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-    const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "dh0yxnlcc";
+    const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || "z_eMg6RM7lTHj2HVW52ZJoqo0e8";
 
     if (!cloudName || !uploadPreset) {
       reject(new Error("Cloudinary credentials are missing. Please set VITE_CLOUDINARY_CLOUD_NAME and VITE_CLOUDINARY_UPLOAD_PRESET in your app's environment variables."));
