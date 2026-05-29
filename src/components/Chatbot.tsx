@@ -72,19 +72,64 @@ export function Chatbot() {
         content: m.content
       }));
 
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      const localKey = localStorage.getItem("openrouter_key");
+      if (localKey) {
+        headers["x-openrouter-key"] = localKey.trim();
+      }
+
       const response = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ messages: apiMessages })
       });
 
-      const data = await response.json();
-      
       if (!response.ok) {
-         throw new Error(data.error || "Failed to get response");
+         try {
+           const data = await response.json();
+           throw new Error(data.error || "Failed to get response");
+         } catch(e) {
+           throw new Error("Failed to get response");
+         }
       }
       
-      setMessages(prev => [...prev, data.reply]);
+      setMessages(prev => [...prev, { role: "assistant", content: "" }]);
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      
+      setIsLoading(false);
+
+      if (reader) {
+        let accumulatedText = "";
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunkStr = decoder.decode(value, { stream: true });
+          
+          const lines = chunkStr.split("\n");
+          for (const line of lines) {
+            if (line.startsWith("data: ") && !line.includes("[DONE]")) {
+              try {
+                const parsed = JSON.parse(line.slice(6));
+                if (parsed.choices?.[0]?.delta?.content) {
+                  accumulatedText += parsed.choices[0].delta.content;
+                  setMessages(prev => {
+                    const newMessages = [...prev];
+                    newMessages[newMessages.length - 1] = {
+                      role: "assistant",
+                      content: accumulatedText
+                    };
+                    return newMessages;
+                  });
+                }
+              } catch (e) {
+                // Ignore parse errors on incomplete chunks
+              }
+            }
+          }
+        }
+      }
     } catch (error: any) {
       console.error(error);
       setMessages(prev => [...prev, { role: "assistant", content: `Sorry, I encountered an error: ${error.message}` }]);

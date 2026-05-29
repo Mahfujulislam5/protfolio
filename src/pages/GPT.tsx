@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Bot, User, Send, Loader2, Image as ImageIcon, XCircle, Download, Copy, Check } from "lucide-react";
+import { Bot, User, Send, Loader2, Image as ImageIcon, XCircle, Download, Copy, Check, Settings, Save } from "lucide-react";
 import Markdown from "react-markdown";
 
 interface Message {
@@ -16,6 +16,10 @@ export function GPT() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [apiKey, setApiKey] = useState(() => localStorage.getItem("openrouter_key") || "");
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -42,6 +46,11 @@ export function GPT() {
     navigator.clipboard.writeText(text);
     setCopiedIndex(index);
     setTimeout(() => setCopiedIndex(null), 2000);
+  };
+
+  const handleSaveSettings = () => {
+    localStorage.setItem("openrouter_key", apiKey.trim());
+    setSettingsOpen(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -72,19 +81,63 @@ export function GPT() {
         content: m.content
       }));
 
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (apiKey.trim()) {
+        headers["x-openrouter-key"] = apiKey.trim();
+      }
+
       const response = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ messages: apiMessages })
       });
 
-      const data = await response.json();
-      
       if (!response.ok) {
-         throw new Error(data.error || "Failed to get response");
+         try {
+           const data = await response.json();
+           throw new Error(data.error || "Failed to get response");
+         } catch(e) {
+           throw new Error("Failed to get response");
+         }
       }
       
-      setMessages(prev => [...prev, data.reply]);
+      setMessages(prev => [...prev, { role: "assistant", content: "" }]);
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      
+      setIsLoading(false);
+
+      if (reader) {
+        let accumulatedText = "";
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunkStr = decoder.decode(value, { stream: true });
+          
+          const lines = chunkStr.split("\n");
+          for (const line of lines) {
+            if (line.startsWith("data: ") && !line.includes("[DONE]")) {
+              try {
+                const parsed = JSON.parse(line.slice(6));
+                if (parsed.choices?.[0]?.delta?.content) {
+                  accumulatedText += parsed.choices[0].delta.content;
+                  setMessages(prev => {
+                    const newMessages = [...prev];
+                    newMessages[newMessages.length - 1] = {
+                      role: "assistant",
+                      content: accumulatedText
+                    };
+                    return newMessages;
+                  });
+                }
+              } catch (e) {
+                // Ignore parse errors on incomplete chunks
+              }
+            }
+          }
+        }
+      }
     } catch (error: any) {
       console.error(error);
       setMessages(prev => [...prev, { role: "assistant", content: `Sorry, I encountered an error: ${error.message}` }]);
@@ -94,19 +147,79 @@ export function GPT() {
   };
 
   return (
-    <div className="container mx-auto max-w-5xl px-4 py-24 flex flex-col h-[calc(100vh-80px)]">
+    <div className="container mx-auto max-w-6xl px-4 pt-20 pb-4 flex flex-col h-[100dvh]">
       <motion.div 
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-8 shrink-0"
+        className="flex items-center justify-between mb-4 shrink-0 px-4"
       >
-        <div className="w-16 h-16 mx-auto bg-gradient-to-br from-primary to-accent rounded-2xl flex items-center justify-center mb-4 shadow-xl shadow-primary/20">
-          <Bot className="w-8 h-8 text-white" />
+        <div className="w-10 h-10 invisible"></div> {/* Spacer for centering */}
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
+            <Bot className="w-6 h-6 text-white" />
+          </div>
+          <h1 className="text-2xl font-display font-bold">Mahfujul GPT</h1>
         </div>
-        <h1 className="text-3xl font-display font-bold">Mahfujul GPT</h1>
+        <button 
+          onClick={() => setSettingsOpen(true)}
+          className="w-10 h-10 flex items-center justify-center bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-colors"
+          title="Settings"
+        >
+          <Settings className="w-5 h-5 text-white/70" />
+        </button>
       </motion.div>
 
-      <div className="flex-1 glass-card rounded-[2rem] border border-white/10 flex flex-col overflow-hidden">
+      <AnimatePresence>
+        {settingsOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          >
+            <motion.div 
+              initial={{ scale: 0.95 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.95 }}
+              className="bg-[#0f172a] border border-white/10 p-6 rounded-3xl w-full max-w-md shadow-2xl relative"
+            >
+              <button 
+                onClick={() => setSettingsOpen(false)}
+                className="absolute top-4 right-4 p-2 text-white/50 hover:text-white hover:bg-white/10 rounded-full transition-colors"
+              >
+                <XCircle className="w-5 h-5" />
+              </button>
+              
+              <h2 className="text-xl font-bold mb-2 flex items-center gap-2">
+                <Settings className="w-5 h-5 text-primary" /> API Settings
+              </h2>
+              <p className="text-sm text-white/50 mb-6">Connect your own OpenRouter API key to override the default application key.</p>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-white/70 mb-2">OpenRouter API Key</label>
+                  <input 
+                    type="password"
+                    value={apiKey}
+                    onChange={e => setApiKey(e.target.value)}
+                    placeholder="sk-or-..."
+                    className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/30 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all"
+                  />
+                </div>
+                
+                <button 
+                  onClick={handleSaveSettings}
+                  className="w-full py-3 bg-gradient-to-r from-primary to-accent hover:opacity-90 text-white rounded-xl font-medium flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary/20"
+                >
+                  <Save className="w-4 h-4" /> Save Settings
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="flex-1 glass-card rounded-3xl border border-white/10 flex flex-col overflow-hidden">
         {/* Chat Area */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {messages.map((msg, i) => (

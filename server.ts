@@ -18,10 +18,18 @@ async function startServer() {
   app.post("/api/generate-prompt", async (req, res) => {
     try {
       const { imagePart } = req.body; // { inlineData: { data: "base64", mimeType: "image/jpeg" } }
-      
+      const apiKeyHeader = req.headers["x-gemini-key"] as string;
+      const key = apiKeyHeader || process.env.GEMINI_API_KEY;
+
+      if (!key) {
+        return res.status(401).json({ error: "Missing Gemini API Key. Please provide one in settings." });
+      }
+
       if (!imagePart) {
         return res.status(400).json({ error: "Missing imagePart" });
       }
+
+      const ai = new GoogleGenAI({ apiKey: key });
 
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash",
@@ -93,9 +101,18 @@ async function startServer() {
   app.post("/api/edit-image", async (req, res) => {
     try {
       const { image, prompt } = req.body;
+      const apiKeyHeader = req.headers["x-gemini-key"] as string;
+      const key = apiKeyHeader || process.env.GEMINI_API_KEY;
+
+      if (!key) {
+        return res.status(401).json({ error: "Missing Gemini API Key. Please provide one in settings." });
+      }
+
       if (!image || !prompt) {
         return res.status(400).json({ error: "Missing image or prompt" });
       }
+
+      const ai = new GoogleGenAI({ apiKey: key });
 
       const base64Data = image.split(',')[1];
       const mimeType = image.split(':')[1].split(';')[0];
@@ -148,7 +165,8 @@ async function startServer() {
         return res.status(400).json({ error: "Missing messages" });
       }
 
-      const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || "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";
+      const apiKeyHeader = req.headers["x-openrouter-key"] as string;
+      const OPENROUTER_API_KEY = apiKeyHeader || process.env.OPENROUTER_API_KEY || "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";
 
       const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
@@ -161,6 +179,7 @@ async function startServer() {
         body: JSON.stringify({
           model: "openai/gpt-4o-mini",
           max_tokens: 1000,
+          stream: true,
           messages
         })
       });
@@ -170,11 +189,21 @@ async function startServer() {
         throw new Error(`OpenRouter Error: ${errText}`);
       }
 
-      const data = await r.json();
-      if (!data.choices || !data.choices[0]) {
-          throw new Error(`OpenRouter Error: Invalid response format ${JSON.stringify(data)}`);
+      res.setHeader('Content-Type', 'text/event-stream');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Connection', 'keep-alive');
+
+      if (r.body) {
+        const reader = r.body.getReader();
+        const decoder = new TextDecoder();
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunkStr = decoder.decode(value, { stream: true });
+          res.write(chunkStr);
+        }
       }
-      res.json({ reply: data.choices[0].message });
+      res.end();
     } catch (error: any) {
       console.error("Chat error:", error);
       res.status(500).json({ error: error.message || "Failed to process chat" });

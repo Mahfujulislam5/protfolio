@@ -7,6 +7,7 @@ import { Prompts } from "./pages/Prompts";
 import { Tools } from "./pages/Tools";
 import { PromptMaker } from "./pages/PromptMaker";
 import { ImageEditor } from "./pages/ImageEditor";
+import { ImageToPrompt } from "./pages/ImageToPrompt";
 import { GPT } from "./pages/GPT";
 import { Designs } from "./pages/Designs";
 import { Blog } from "./pages/Blog";
@@ -47,6 +48,7 @@ export default function App() {
             <Route path="prompts" element={<Prompts />} />
             <Route path="prompt-maker" element={<PromptMaker />} />
             <Route path="image-editor" element={<ImageEditor />} />
+            <Route path="image-to-prompt" element={<ImageToPrompt />} />
             <Route path="gpt" element={<GPT />} />
             <Route path="tools" element={<Tools />} />
             <Route path="designs" element={<Designs />} />
