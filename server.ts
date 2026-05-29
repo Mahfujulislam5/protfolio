@@ -3,10 +3,33 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
+import { initializeApp } from 'firebase/app';
+import { getFirestore, doc, getDoc } from 'firebase/firestore';
 
 dotenv.config();
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const firebaseConfig = {
+  apiKey: "AIzaSyDdjHPpk2d3YcetI0N_ce7XWd052J6eLa8",
+  authDomain: "portfolio-f8246.firebaseapp.com",
+  projectId: "portfolio-f8246",
+  storageBucket: "portfolio-f8246.firebasestorage.app",
+  messagingSenderId: "580496433779",
+  appId: "1:580496433779:web:57c77fc6f0175fdc998006",
+  measurementId: "G-1RZKHBSNTL"
+};
+
+const appObj = initializeApp(firebaseConfig);
+const db = getFirestore(appObj);
+
+async function getApiKey(serviceName: string, envFallback: string) {
+  try {
+     const docSnap = await getDoc(doc(db, "settings", "apikeys"));
+     if (docSnap.exists() && docSnap.data()[serviceName]) {
+       return docSnap.data()[serviceName];
+     }
+  } catch(e) {}
+  return process.env[envFallback] || "";
+}
 
 async function startServer() {
   const app = express();
@@ -18,11 +41,10 @@ async function startServer() {
   app.post("/api/generate-prompt", async (req, res) => {
     try {
       const { imagePart } = req.body; // { inlineData: { data: "base64", mimeType: "image/jpeg" } }
-      const apiKeyHeader = req.headers["x-gemini-key"] as string;
-      const key = apiKeyHeader || process.env.GEMINI_API_KEY;
+      const key = await getApiKey("geminiKey", "GEMINI_API_KEY");
 
       if (!key) {
-        return res.status(401).json({ error: "Missing Gemini API Key. Please provide one in settings." });
+        return res.status(401).json({ error: "Missing Gemini API Key. Admin needs to configure it." });
       }
 
       if (!imagePart) {
@@ -59,7 +81,7 @@ async function startServer() {
         return res.status(400).json({ error: "Missing prompt" });
       }
 
-      const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || "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";
+      const OPENROUTER_API_KEY = await getApiKey("openrouterKey", "OPENROUTER_API_KEY") || "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";
 
       const messages = [
         { role: "system", content: "You are an expert prompt engineer. The user will give you a simple idea, and you must write a highly detailed, cinematic, ultra-specific prompt (optimized for Midjourney or Stable Diffusion) based on their idea. Enhance it with details about lighting, camera angle, medium, mood, colors, and art style. Return ONLY the enhanced prompt text, nothing else." },
@@ -101,11 +123,10 @@ async function startServer() {
   app.post("/api/edit-image", async (req, res) => {
     try {
       const { image, prompt } = req.body;
-      const apiKeyHeader = req.headers["x-gemini-key"] as string;
-      const key = apiKeyHeader || process.env.GEMINI_API_KEY;
+      const key = await getApiKey("geminiKey", "GEMINI_API_KEY");
 
       if (!key) {
-        return res.status(401).json({ error: "Missing Gemini API Key. Please provide one in settings." });
+        return res.status(401).json({ error: "Missing Gemini API Key. Admin needs to configure it." });
       }
 
       if (!image || !prompt) {
@@ -165,8 +186,7 @@ async function startServer() {
         return res.status(400).json({ error: "Missing messages" });
       }
 
-      const apiKeyHeader = req.headers["x-openrouter-key"] as string;
-      const OPENROUTER_API_KEY = apiKeyHeader || process.env.OPENROUTER_API_KEY || "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";
+      const OPENROUTER_API_KEY = await getApiKey("openrouterKey", "OPENROUTER_API_KEY") || "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";
 
       const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",

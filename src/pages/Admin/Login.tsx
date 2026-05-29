@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { auth } from "../../lib/firebase";
-import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { auth, db } from "../../lib/firebase";
+import { signInWithPopup, GoogleAuthProvider, signOut } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 import { useNavigate, Navigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { motion } from "motion/react";
@@ -19,9 +20,26 @@ export function AdminLogin() {
     try {
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({
-        login_hint: 'mahfujul848@gmail.com'
+        prompt: 'select_account'
       });
-      await signInWithPopup(auth, provider);
+      const res = await signInWithPopup(auth, provider);
+
+      const docRef = doc(db, "settings", "admins");
+      const docSnap = await getDoc(docRef);
+      let allowedEmails: string[] = ["mahfujul848@gmail.com"];
+      if (docSnap.exists() && docSnap.data().emails) {
+          allowedEmails = docSnap.data().emails;
+          if (!allowedEmails.includes("mahfujul848@gmail.com")) {
+             allowedEmails.push("mahfujul848@gmail.com");
+          }
+      }
+      
+      if (!res.user.email || !allowedEmails.includes(res.user.email)) {
+          await signOut(auth);
+          setError(`Access Denied: ${res.user.email} is not authorized.`);
+          return;
+      }
+
       navigate("/admin");
     } catch (err: any) {
       setError(err.message);

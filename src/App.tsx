@@ -10,6 +10,7 @@ import { ImageEditor } from "./pages/ImageEditor";
 import { ImageToPrompt } from "./pages/ImageToPrompt";
 import { GPT } from "./pages/GPT";
 import { Designs } from "./pages/Designs";
+import { CustomToolViewer } from "./pages/CustomToolViewer";
 import { Blog } from "./pages/Blog";
 import { Categories } from "./pages/Categories";
 import { About } from "./pages/About";
@@ -21,6 +22,7 @@ import { ManagePrompts } from "./pages/Admin/ManagePrompts";
 import { ManageCategories } from "./pages/Admin/ManageCategories";
 import { ManageApps } from "./pages/Admin/ManageApps";
 import { ManageTools } from "./pages/Admin/ManageTools";
+import { ManagePremiumTools } from "./pages/Admin/ManagePremiumTools";
 import { ManageDesigns } from "./pages/Admin/ManageDesigns";
 import { ManageSettings } from "./pages/Admin/ManageSettings";
 import { ManageBlog } from "./pages/Admin/ManageBlog";
@@ -51,6 +53,7 @@ export default function App() {
             <Route path="image-to-prompt" element={<ImageToPrompt />} />
             <Route path="gpt" element={<GPT />} />
             <Route path="tools" element={<Tools />} />
+            <Route path="custom-tool/:id" element={<CustomToolViewer />} />
             <Route path="designs" element={<Designs />} />
             <Route path="blog" element={<Blog />} />
             <Route path="categories" element={<Categories />} />
@@ -67,6 +70,7 @@ export default function App() {
             <Route path="prompts" element={<ManagePrompts />} />
             <Route path="categories" element={<ManageCategories />} />
             <Route path="tools" element={<ManageTools />} />
+            <Route path="premium-tools" element={<ManagePremiumTools />} />
             <Route path="apps" element={<ManageApps />} />
             <Route path="designs" element={<ManageDesigns />} />
             <Route path="blog" element={<ManageBlog />} />

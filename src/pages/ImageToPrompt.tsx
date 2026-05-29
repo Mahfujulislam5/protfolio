@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Image as ImageIcon, Upload, Loader2, Play, Copy, XCircle, Settings, Save } from "lucide-react";
+import { Image as ImageIcon, Upload, Loader2, Play, Copy, XCircle, Save } from "lucide-react";
 
 export function ImageToPrompt() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -9,14 +9,6 @@ export function ImageToPrompt() {
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem("gemini_key") || "");
-
-  const handleSaveSettings = () => {
-    localStorage.setItem("gemini_key", apiKey.trim());
-    setSettingsOpen(false);
-  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -42,9 +34,6 @@ export function ImageToPrompt() {
       const mimeType = selectedImage.split(':')[1].split(';')[0];
       
       const headers: Record<string, string> = { "Content-Type": "application/json" };
-      if (apiKey.trim()) {
-        headers["x-gemini-key"] = apiKey.trim();
-      }
 
       const response = await fetch("/api/generate-prompt", {
         method: "POST",
@@ -76,68 +65,11 @@ export function ImageToPrompt() {
 
   return (
     <div className="container mx-auto max-w-5xl px-4 py-32 relative">
-      <AnimatePresence>
-        {settingsOpen && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-          >
-            <motion.div 
-              initial={{ scale: 0.95 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.95 }}
-              className="bg-[#0f172a] border border-white/10 p-6 rounded-3xl w-full max-w-md shadow-2xl relative"
-            >
-              <button 
-                onClick={() => setSettingsOpen(false)}
-                className="absolute top-4 right-4 p-2 text-white/50 hover:text-white hover:bg-white/10 rounded-full transition-colors"
-              >
-                <XCircle className="w-5 h-5" />
-              </button>
-              
-              <h2 className="text-xl font-bold mb-2 flex items-center gap-2">
-                <Settings className="w-5 h-5 text-teal-500" /> API Settings
-              </h2>
-              <p className="text-sm text-white/50 mb-6">Connect your own Gemini API key to override the default application key.</p>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-white/70 mb-2">Gemini API Key</label>
-                  <input 
-                    type="password"
-                    value={apiKey}
-                    onChange={e => setApiKey(e.target.value)}
-                    placeholder="AIzaSy..."
-                    className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/30 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 transition-all"
-                  />
-                </div>
-                
-                <button 
-                  onClick={handleSaveSettings}
-                  className="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-90 text-white rounded-xl font-medium flex items-center justify-center gap-2 transition-all shadow-lg shadow-teal-500/20"
-                >
-                  <Save className="w-4 h-4" /> Save Settings
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="text-center mb-12 relative"
       >
-        <button 
-          onClick={() => setSettingsOpen(true)}
-          className="absolute top-0 right-0 p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-colors text-white/70 hover:text-white"
-          title="Settings"
-        >
-          <Settings className="w-5 h-5" />
-        </button>
 
         <div className="w-16 h-16 mx-auto bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl flex items-center justify-center mb-6 shadow-xl shadow-teal-500/20">
           <ImageIcon className="w-8 h-8 text-white" />

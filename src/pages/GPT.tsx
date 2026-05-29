@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Bot, User, Send, Loader2, Image as ImageIcon, XCircle, Download, Copy, Check, Settings, Save } from "lucide-react";
+import { Bot, User, Send, Loader2, Image as ImageIcon, XCircle, Download, Copy, Check, Save } from "lucide-react";
 import Markdown from "react-markdown";
 
 interface Message {
@@ -17,9 +17,6 @@ export function GPT() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem("openrouter_key") || "");
-
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -46,11 +43,6 @@ export function GPT() {
     navigator.clipboard.writeText(text);
     setCopiedIndex(index);
     setTimeout(() => setCopiedIndex(null), 2000);
-  };
-
-  const handleSaveSettings = () => {
-    localStorage.setItem("openrouter_key", apiKey.trim());
-    setSettingsOpen(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -82,9 +74,6 @@ export function GPT() {
       }));
 
       const headers: Record<string, string> = { "Content-Type": "application/json" };
-      if (apiKey.trim()) {
-        headers["x-openrouter-key"] = apiKey.trim();
-      }
 
       const response = await fetch("/api/chat", {
         method: "POST",
@@ -160,64 +149,8 @@ export function GPT() {
           </div>
           <h1 className="text-2xl font-display font-bold">Mahfujul GPT</h1>
         </div>
-        <button 
-          onClick={() => setSettingsOpen(true)}
-          className="w-10 h-10 flex items-center justify-center bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-colors"
-          title="Settings"
-        >
-          <Settings className="w-5 h-5 text-white/70" />
-        </button>
+        <div className="w-10 h-10 invisible"></div> {/* Spacer for centering */}
       </motion.div>
-
-      <AnimatePresence>
-        {settingsOpen && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-          >
-            <motion.div 
-              initial={{ scale: 0.95 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.95 }}
-              className="bg-[#0f172a] border border-white/10 p-6 rounded-3xl w-full max-w-md shadow-2xl relative"
-            >
-              <button 
-                onClick={() => setSettingsOpen(false)}
-                className="absolute top-4 right-4 p-2 text-white/50 hover:text-white hover:bg-white/10 rounded-full transition-colors"
-              >
-                <XCircle className="w-5 h-5" />
-              </button>
-              
-              <h2 className="text-xl font-bold mb-2 flex items-center gap-2">
-                <Settings className="w-5 h-5 text-primary" /> API Settings
-              </h2>
-              <p className="text-sm text-white/50 mb-6">Connect your own OpenRouter API key to override the default application key.</p>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-white/70 mb-2">OpenRouter API Key</label>
-                  <input 
-                    type="password"
-                    value={apiKey}
-                    onChange={e => setApiKey(e.target.value)}
-                    placeholder="sk-or-..."
-                    className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/30 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all"
-                  />
-                </div>
-                
-                <button 
-                  onClick={handleSaveSettings}
-                  className="w-full py-3 bg-gradient-to-r from-primary to-accent hover:opacity-90 text-white rounded-xl font-medium flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary/20"
-                >
-                  <Save className="w-4 h-4" /> Save Settings
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       <div className="flex-1 glass-card rounded-3xl border border-white/10 flex flex-col overflow-hidden">
         {/* Chat Area */}
