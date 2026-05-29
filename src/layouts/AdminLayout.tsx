@@ -59,7 +59,7 @@ export function AdminLayout() {
           <div className="w-6 h-6 rounded bg-gradient-to-br from-primary to-accent flex items-center justify-center text-xs shadow-lg shadow-primary/20">M</div>
           Admin<span className="text-primary font-normal">Panel</span>
         </Link>
-        <button className="lg:hidden p-1 rounded-md hover:bg-white/10" onClick={() => setMobileMenuOpen(false)}>
+        <button className="p-1 rounded-md hover:bg-white/10" onClick={() => setMobileMenuOpen(false)}>
           <X className="w-5 h-5" />
         </button>
       </div>
@@ -112,8 +112,8 @@ export function AdminLayout() {
     <div className="flex h-[100dvh] bg-[#030014] text-white overflow-hidden relative">
       <div className="absolute top-0 right-0 w-full h-[50vh] bg-gradient-to-b from-primary/5 to-transparent pointer-events-none"></div>
 
-      {/* Mobile Top Navbar */}
-      <div className="lg:hidden absolute top-0 left-0 w-full glass-card border-b border-white/5 z-20 flex items-center justify-between p-4">
+      {/* Top Navbar */}
+      <div className="absolute top-0 left-0 w-full glass-card border-b border-white/5 z-20 flex items-center justify-between p-4">
         <div className="flex items-center gap-2">
            <div className="w-6 h-6 rounded bg-gradient-to-br from-primary to-accent flex items-center justify-center text-xs shadow-lg shadow-primary/20">M</div>
            <span className="font-display font-bold text-lg">Admin<span className="text-primary font-normal">Panel</span></span>
@@ -123,19 +123,14 @@ export function AdminLayout() {
         </button>
       </div>
 
-      {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex w-64 glass-card border-r border-white/5 flex-col h-full relative z-20 shrink-0">
-        <SidebarContent />
-      </aside>
-
-      {/* Mobile Sidebar overlay */}
+      {/* Sidebar overlay */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 z-50 lg:hidden"
+            className="fixed inset-0 bg-black/60 z-50"
             onClick={() => setMobileMenuOpen(false)}
           >
             <motion.aside 
@@ -153,7 +148,7 @@ export function AdminLayout() {
       </AnimatePresence>
 
       {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto relative z-10 scrollbar-hide pt-[72px] lg:pt-0">
+      <main className="flex-1 overflow-y-auto relative z-10 scrollbar-hide pt-[72px]">
         <div className="p-4 md:p-8 lg:p-12 max-w-7xl mx-auto min-h-full">
            <Outlet />
         </div>
